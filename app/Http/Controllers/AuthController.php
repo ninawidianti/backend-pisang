@@ -63,5 +63,17 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
     }
+    // Fungsi Logout
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+        if ($user) {
+            $user->tokens()->delete();
+            return response()->json(['message' => 'Logout berhasil.']);
+        } else {
+            return response()->json(['message' => 'Pengguna tidak ditemukan atau belum login.'], 401);
+        }
+    }
+    
 
 }

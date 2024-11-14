@@ -77,4 +77,41 @@ class ProductController extends Controller
             ], 404);
         }
     }
+
+    // Method update untuk mengubah produk berdasarkan id
+public function update(Request $request, $id) {
+    // Validasi input
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'required|string',
+        'price' => 'required|numeric',
+        'image_url' => 'required|url'
+    ]);
+
+    // Cari produk berdasarkan id
+    $product = Product::find($id);
+
+    if ($product) {
+        // Update atribut produk dengan data yang divalidasi
+        $product->name = $validatedData['name'];
+        $product->description = $validatedData['description'];
+        $product->price = $validatedData['price'];
+        $product->image_url = $validatedData['image_url'];
+
+        // Simpan perubahan ke database
+        $product->save();
+
+        // Kembalikan response sukses
+        return response()->json([
+            'status' => 'success',
+            'data' => $product
+        ], 200); // 200: OK
+    } else {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Product not found'
+        ], 404);
+    }
+}
+
 }

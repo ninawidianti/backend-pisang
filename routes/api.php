@@ -1,45 +1,55 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StokbahanController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 
+// Route untuk registrasi dan login
+Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Route yang memerlukan autentikasi
+Route::middleware('auth:sanctum')->group(function () {
 
-Route::post('/Register', [AuthController::class,'register']);
-Route::post('/login', [AuthController::class, 'login']);
+    // Route untuk mendapatkan data user saat ini
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    })->name('user.profile');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
 });
 
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{id}', [ProductController::class, 'show']);
-Route::post('/products/create', [ProductController::class, 'store']);
-Route::delete('/products/{id}', [ProductController::class, 'destroy']);
 
-Route::get('/users', [UserController::class,'index']);
+    // Route untuk produk
+    Route::get('/products', [ProductController::class, 'index'])->name('index');;
+    Route::get('/products/{id}', [ProductController::class, 'show'])->name('show');;
+    Route::post('/products/create', [ProductController::class, 'store'])->name('store');;
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('destroy');;
+    Route::put('/products/{id}', [ProductController::class, 'update'])->name('update');;
 
-Route::get('/stokbahan', [StokbahanController::class, 'index']);
-Route::get('/stokbahan/{id}', [StokbahanController::class, 'show']);
-Route::post('/stokbahan/create', [StokbahanController::class, 'store']);
-Route::delete('/stokbahan/{id}', [StokbahanController::class, 'destroy']);
-Route::put('/stokbahan/{id}', [StokbahanController::class, 'update']);
+    // Route untuk stok bahan
+    Route::get('/stokbahan', [StokbahanController::class, 'index']);
+    Route::get('/stokbahan/{id}', [StokbahanController::class, 'show']);
+    Route::post('/stokbahan/create', [StokbahanController::class, 'store']);
+    Route::delete('/stokbahan/{id}', [StokbahanController::class, 'destroy']);
+    Route::put('/stokbahan/{id}', [StokbahanController::class, 'update']);
 
+    // Route untuk orders
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
 
+    // Route untuk user index
+    Route::get('/users', [UserController::class, 'index']);
 
-// Route::middleware([EnsureFrontendRequestsAreStateful::class])->group(function () {
-//     // Daftar route API-mu di sini
+    // Route untuk pembayaran
+    Route::post('/orders/{orderId}/payment', [PaymentController::class, 'store']);
+    Route::get('/payments/{id}', [PaymentController::class, 'show']);
 
-//     // Route::post('/Register', [AuthController::class,'register']);
-//
-// });
+    // Route untuk logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
