@@ -4,33 +4,34 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePaymentsTable extends Migration
+class CreateOrdersTable extends Migration
 {
     /**
-     * Run the migrations.
+     * Jalankan migrasi.
      *
      * @return void
      */
     public function up()
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade'); // Menghubungkan ke tabel orders
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Menghubungkan ke tabel users
             $table->string('payment_method'); // Metode pembayaran
             $table->string('delivery_method'); // Metode pengiriman
-            $table->text('address')->nullable(); // Alamat (nullable jika tidak diantar)
+            $table->text('address')->nullable(); // Alamat pengiriman (nullable)
             $table->decimal('total_price', 10, 2); // Total harga
+            $table->enum('status', ['pending', 'process', 'completed', 'canceled'])->default('pending'); // Status pesanan
             $table->timestamps(); // Menyimpan waktu dibuat dan diperbarui
         });
     }
 
     /**
-     * Reverse the migrations.
+     * Balikkan migrasi.
      *
      * @return void
      */
     public function down()
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('orders');
     }
 }

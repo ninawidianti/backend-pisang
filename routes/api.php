@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StokbahanController;
 use App\Http\Controllers\UserController;
@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     })->name('user.profile');
 
-});
+
 
 
     // Route untuk produk
@@ -33,6 +33,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('destroy');;
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('update');;
 
+    // Route untuk order
+    Route::apiResource('orders', OrderController::class);
+    Route::apiResource('order-items', OrderItemController::class);
+
+    // Route untuk logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+});
+
     // Route untuk stok bahan
     Route::get('/stokbahan', [StokbahanController::class, 'index']);
     Route::get('/stokbahan/{id}', [StokbahanController::class, 'show']);
@@ -40,16 +49,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/stokbahan/{id}', [StokbahanController::class, 'destroy']);
     Route::put('/stokbahan/{id}', [StokbahanController::class, 'update']);
 
-    // Route untuk orders
-    Route::post('/orders', [OrderController::class, 'store']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-
     // Route untuk user index
     Route::get('/users', [UserController::class, 'index']);
-
-    // Route untuk pembayaran
-    Route::post('/orders/{orderId}/payment', [PaymentController::class, 'store']);
-    Route::get('/payments/{id}', [PaymentController::class, 'show']);
-
-    // Route untuk logout
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

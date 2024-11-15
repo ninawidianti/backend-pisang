@@ -1,125 +1,109 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\DetailOrder;
-use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
-    // Method to create a new order
+    /**
+     * Menyimpan pesanan baru.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         // Validasi input
-        $request->validate([
-            'product_id' => 'required|array',
-            'product_id.*' => 'exists:products,id', // Pastikan semua product_id valid
-            'quantity' => 'required|array',
-            'quantity.*' => 'integer|min:1', // Pastikan semua quantity valid
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'payment_method' => 'required|string',
+            'delivery_method' => 'required|string',
+            'address' => 'nullable|string',
+            'total_price' => 'required|numeric',
+            'status' => 'in:pending,completed,canceled',
         ]);
 
-        $user = $request->user();
-        if (!$user) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'User  tidak ditemukan atau belum login'
-            ], 401);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        // Mulai pesanan
-        $order = Order::create([
-            'user_id' => $user->id,
-            'total_price' => 0,
-            'status' => 'pending' // Status awal adalah pending
-        ]);
+        // Buat pesanan baru
+        $order = Order::create($request->all());
 
-        $totalPrice = 0;
-
-        // Loop melalui produk yang dipilih
-        foreach ($request->product_id as $index => $productId) {
-            $product = Product::find($productId);
-            $quantity = $request->quantity[$index];
-            $price = $product->price;
-            $totalPrice += $price * $quantity;
-
-            // Buat detail pesanan
-            DetailOrder::create([
-                'order_id' => $order->id,
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'price' => $price
-            ]);
-        }
-
-        // Update total harga pesanan
-        $order->update(['total_price' => $totalPrice]);
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $order->load('orderDetails.product') // Memuat detail pesanan dengan produk
-        ], 201);
+        return response()->json($order, 201);
     }
 
-    // Method to get order details by order ID
+    /**
+     * Menampilkan detail pesanan berdasarkan ID.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function show($id)
     {
-        $order = Order::with('orderDetails.product')->find($id);
+        $order = Order::find($id);
 
-        if ($order) {
-            return response()->json([
-                'status' => 'success',
-                'data' => $order
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Order not found'
-            ], 404);
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
         }
+
+        return response()->json($order);
     }
 
-    // Method to update order status (contoh tambahan)
-    public function updateStatus(Request $request, $id)
+    /**
+     * Memperbarui pesanan yang ada.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'status' => 'required|string|in:pending,completed,canceled'
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'payment_method' => 'sometimes|required|string',
+            'delivery_method' => 'sometimes|required|string',
+            'address' => 'nullable|string',
+            'total_price' => 'sometimes|required|numeric',
+            'status' => 'sometimes|in:pending,completed,canceled',
         ]);
 
-        $order = Order::find($id);
-        if (!$order) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Order not found'
-            ], 404);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        $order->update(['status' => $request->status]);
+        $order = Order::find($id);
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $order
-        ], 200);
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        // Perbarui pesanan
+        $order->update($request->all());
+
+        return response()->json($order);
     }
 
-    // Method to delete an order (contoh tambahan)
+    /**
+     * Menghapus pesanan berdasarkan ID.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\Response
+     */
     public function destroy($id)
     {
         $order = Order::find($id);
+
         if (!$order) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Order not found'
-            ], 404);
+            return response()->json(['message' => 'Order not found'], 404);
         }
 
-        // Hapus detail order terkait
-        DetailOrder::where('order_id', $id)->delete();
+        // Hapus pesanan
         $order->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Order deleted successfully'
-        ], 200);
+        return response()->json(['message' => 'Order deleted successfully']);
     }
 }
