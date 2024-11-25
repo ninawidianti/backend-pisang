@@ -18,20 +18,24 @@ class ProductController extends Controller
 
     // Method show untuk mendapatkan produk berdasarkan id
     public function show($id) {
-        $product = Product::find($id);
+    // Cari produk berdasarkan ID
+    $product = Product::find($id);
 
-        if ($product) {
-            return response()->json([
-                'status' => 'success',
-                'data' => $product
-            ], 200);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Product not found'
-            ], 404);
-        }
+    // Jika produk ditemukan, kembalikan datanya
+    if ($product) {
+        return response()->json([
+            'status' => 'success',
+            'data' => $product
+        ], 200); // HTTP OK
     }
+
+    // Jika tidak ditemukan, kembalikan pesan error
+    return response()->json([
+        'status' => 'error',
+        'message' => 'Product not found'
+    ], 404); // HTTP Not Found
+}
+
 
     // Method store untuk menambahkan produk baru
     public function store(Request $request) {

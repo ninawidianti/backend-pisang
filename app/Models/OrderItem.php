@@ -26,4 +26,12 @@ class OrderItem extends Model
     }
 
     
+    protected static function booted()
+    {
+        static::creating(function ($order) {
+            // Membuat batch_id berdasarkan user_id dan timestamp saat ini
+            $order->batch_id = $order->user_id . '-' . now()->timestamp;
+        });
+    }
+    
 }

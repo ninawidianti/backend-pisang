@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class OrderItemController extends Controller
 {
@@ -28,11 +29,38 @@ class OrderItemController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        // Membuat batch_id secara otomatis berdasarkan order_id dan waktu saat ini
+        $batchId = $request->order_id . '-' . now()->timestamp;
+
+        // Menambahkan batch_id ke data input
+        $request->merge(['batch_id' => $batchId]);
+
         // Buat item pesanan baru
         $orderItem = OrderItem::create($request->all());
 
         return response()->json($orderItem, 201);
     }
+
+    /**
+     * Menampilkan semua item pesanan.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index(Request $request)
+    {
+        $orderId = $request->query('order_id'); // Ambil order_id dari parameter query
+    
+        if ($orderId) {
+            // Jika order_id diberikan, filter item pesanan berdasarkan order_id
+            $orders = OrderItem::where('order_id', $orderId)->get();
+        } else {
+            // Jika order_id tidak diberikan, kembalikan semua item pesanan
+            $orders = OrderItem::all();
+        }
+    
+        return response()->json($orders);
+    }
+    
 
     /**
      * Menampilkan detail item pesanan berdasarkan ID.
@@ -74,6 +102,11 @@ class OrderItemController extends Controller
 
         if (!$orderItem) {
             return response()->json(['message' => 'Order item not found'], 404);
+        }
+
+        // Jika batch_id tidak ada dalam permintaan, jangan ubah batch_id
+        if ($request->has('batch_id')) {
+            $orderItem->batch_id = $request->batch_id;
         }
 
         // Perbarui item pesanan

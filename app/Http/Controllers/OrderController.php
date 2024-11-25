@@ -14,6 +14,13 @@ class OrderController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
+
+     public function index()
+     {
+         $orders = Order::all(); // Mengambil semua pesanan
+         return response()->json($orders);
+     }
+
     public function store(Request $request)
     {
         // Validasi input
@@ -23,7 +30,7 @@ class OrderController extends Controller
             'delivery_method' => 'required|string',
             'address' => 'nullable|string',
             'total_price' => 'required|numeric',
-            'status' => 'in:pending,completed,canceled',
+            'status' => 'in:pending,process,completed,canceled',
         ]);
 
         if ($validator->fails()) {
@@ -68,7 +75,7 @@ class OrderController extends Controller
             'delivery_method' => 'sometimes|required|string',
             'address' => 'nullable|string',
             'total_price' => 'sometimes|required|numeric',
-            'status' => 'sometimes|in:pending,completed,canceled',
+            'status' => 'sometimes|in:pending,process,completed,canceled',
         ]);
 
         if ($validator->fails()) {
@@ -106,4 +113,33 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Order deleted successfully']);
     }
+
+    public function updateStatus(Request $request, $id)
+{
+    // Validasi input, pastikan status dikirim dan valid
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|in:pending,process,completed,canceled',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422); // Error jika validasi gagal
+    }
+
+    // Cari pesanan berdasarkan ID
+    $order = Order::find($id);
+
+    if (!$order) {
+        return response()->json(['message' => 'Order not found'], 404); // Pesanan tidak ditemukan
+    }
+
+    // Update status pesanan
+    $order->status = $request->status;
+    $order->save(); // Simpan perubahan
+
+    return response()->json([
+        'message' => 'Order status updated successfully',
+        'order' => $order
+    ]); // Mengembalikan response sukses
+}
+
 }

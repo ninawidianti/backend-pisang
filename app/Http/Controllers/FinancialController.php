@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Stokbahan;
@@ -29,8 +30,8 @@ class FinancialController extends Controller
             $endOfWeek = $date->endOfWeek(Carbon::SUNDAY)->endOfDay(); // Akhir minggu pada hari Minggu
 
             // Debugging output untuk memastikan tanggal yang dihitung
-            \Log::info("Start of Week (Monday): " . $startOfWeek);
-            \Log::info("End of Week (Sunday): " . $endOfWeek);
+            Log::info("Start of Week (Monday): " . $startOfWeek);
+            Log::info("End of Week (Sunday): " . $endOfWeek);
 
             // Ambil data pesanan dalam rentang minggu (Senin - Minggu)
             $ordersQuery->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
@@ -74,8 +75,8 @@ class FinancialController extends Controller
             $endOfWeek = $date->endOfWeek(Carbon::MONDAY)->endOfDay(); // Akhir minggu pada hari Minggu
 
             // Debugging output untuk memastikan tanggal yang dihitung
-            \Log::info("Start of Week (Sunday): " . $startOfWeek);
-            \Log::info("End of Week (Monday): " . $endOfWeek);
+            Log::info("Start of Week (Sunday): " . $startOfWeek);
+            Log::info("End of Week (Monday): " . $endOfWeek);
 
             // Ambil data pengeluaran dalam rentang minggu (Senin - Minggu)
             $stokbahansQuery->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
@@ -101,63 +102,105 @@ class FinancialController extends Controller
 
     //fungsi untuk addincome dan expense
     public function addIncome(Request $request)
-    {
-        $validated = $request->validate([
-            'amount' => 'required|numeric',
-            'description' => 'required|string',
-            'date' => 'required|date',
-        ]);
+{
+    $validated = $request->validate([
+        'total_price' => 'required|numeric',
+        'user_id' => 'required|exists:users,id',
+        'payment_method' => 'required|string',
+        'delivery_method' => 'required|string',
+        'status' => 'required|in:pending,process,completed,canceled',
+        'address' => 'nullable|string',
+    ]);
 
-        $income = new Income();
-        $income->amount = $validated['amount'];
-        $income->description = $validated['description'];
-        $income->date = $validated['date'];
-        $income->save();
+    $order = Order::create($validated);
 
-        return response()->json(['message' => 'Pemasukan berhasil ditambahkan!'], 201);
-    }
+    return response()->json(['message' => 'Pemasukan berhasil ditambahkan!', 'data' => $order], 201);
+}
+
 
     public function addExpense(Request $request)
-    {
-        $validated = $request->validate([
-            'amount' => 'required|numeric',
-            'description' => 'required|string',
-            'date' => 'required|date',
-        ]);
+{
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'stock_quantity' => 'required|numeric',
+        'unit' => 'required|string',
+        'purchase_price' => 'required|numeric',
+        'supplier' => 'required|string',
+    ]);
 
-        $expense = new Expense();
-        $expense->amount = $validated['amount'];
-        $expense->description = $validated['description'];
-        $expense->date = $validated['date'];
-        $expense->save();
+    $stokbahan = Stokbahan::create($validated);
 
-        return response()->json(['message' => 'Pengeluaran berhasil ditambahkan!'], 201);
+    return response()->json(['message' => 'Pengeluaran berhasil ditambahkan!', 'data' => $stokbahan], 201);
+}
+
+public function updateIncome(Request $request, $id)
+{
+    $validated = $request->validate([
+        'total_price' => 'required|numeric',
+        'user_id' => 'required|exists:users,id',
+        'payment_method' => 'required|string',
+        'delivery_method' => 'required|string',
+        'status' => 'required|in:pending,process,completed,canceled',
+        'address' => 'nullable|string',
+    ]);
+
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
     }
+
+    $order->update($validated);
+
+    return response()->json(['message' => 'Pemasukan berhasil diperbarui!', 'data' => $order]);
+}
+
+public function updateExpense(Request $request, $id)
+{
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'stock_quantity' => 'required|numeric',
+        'unit' => 'required|string',
+        'purchase_price' => 'required|numeric',
+        'supplier' => 'required|string',
+    ]);
+
+    $stokbahan = Stokbahan::find($id);
+    if (!$stokbahan) {
+        return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
+    }
+
+    $stokbahan->update($validated);
+
+    return response()->json(['message' => 'Pengeluaran berhasil diperbarui!', 'data' => $stokbahan]);
+}
+
     //fungsi untuk delete
 
     public function deleteIncome($id)
-    {
-        $income = Income::find($id);
-        if (!$income) {
-            return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
-        }
-
-        $income->delete();
-
-        return response()->json(['message' => 'Pemasukan berhasil dihapus!']);
+{
+    $order = Order::find($id);
+    if (!$order) {
+        return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
     }
 
-    public function deleteExpense($id)
-    {
-        $expense = Expense::find($id);
-        if (!$expense) {
-            return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
-        }
+    $order->delete();
 
-        $expense->delete();
+    return response()->json(['message' => 'Pemasukan berhasil dihapus!']);
+}
 
-        return response()->json(['message' => 'Pengeluaran berhasil dihapus!']);
+
+public function deleteExpense($id)
+{
+    $stokbahan = Stokbahan::find($id);
+    if (!$stokbahan) {
+        return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
     }
+
+    $stokbahan->delete();
+
+    return response()->json(['message' => 'Pengeluaran berhasil dihapus!']);
+}
+
 
 
 }
