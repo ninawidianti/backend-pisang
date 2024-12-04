@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Stokbahan;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class StokbahanController extends Controller
 {
@@ -121,6 +122,14 @@ class StokbahanController extends Controller
         ], 404);
     }
 }
+
+public function generatePDF()
+    {
+        // Logic to generate PDF using Stokbahan data
+        $stokbahans = Stokbahan::all();
+        $pdf = Pdf::loadView('reports.stokbahan', ['stokbahans' => $stokbahans]);
+        return $pdf->download('stokbahans.pdf');
+    }
 
 
 

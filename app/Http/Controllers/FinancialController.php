@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\Stokbahan;
+use App\Models\UnexpectedExpense;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class FinancialController extends Controller
 {
@@ -201,6 +203,62 @@ public function deleteExpense($id)
     return response()->json(['message' => 'Pengeluaran berhasil dihapus!']);
 }
 
+public function generatePDF(Request $request)
+    {
+        // Ambil bulan dan tahun dari query parameter, jika tidak ada, gunakan bulan dan tahun saat ini
+        $month = $request->query('month', Carbon::now()->month);
+        $year = $request->query('year', Carbon::now()->year);
 
+        // Mengambil data pemasukan berdasarkan bulan dan tahun
+        $incomeData = Order::where('status', 'completed')
+            ->whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'date' => $order->created_at->toDateString(),
+                    'amount' => $order->total_price,
+                    'description' => 'Order ID: ' . $order->id,
+                ];
+            });
+
+        // Mengambil data pengeluaran berdasarkan bulan dan tahun
+        $stokbahans = Stokbahan::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->map(function ($stokbahan) {
+                return [
+                    'date' => $stokbahan->created_at->toDateString(),
+                    'amount' => $stokbahan->purchase_price,
+                    'description' => 'Item: ' . $stokbahan->name . ' from ' . $stokbahan->supplier,
+                ];
+            });
+
+        $otherExpenses = UnexpectedExpense::whereMonth('created_at', $month)
+            ->whereYear('created_at', $year)
+            ->get()
+            ->map(function ($expense) {
+                return [
+                    'date' => $expense->created_at->toDateString(),
+                    'amount' => $expense->amount,
+                    'description' => $expense->description,
+                ];
+            });
+
+        // Gabungkan data pemasukan dan pengeluaran
+        $expenses = $stokbahans->merge($otherExpenses)->sortByDesc('date')->values();
+
+        // Pastikan data yang dikirim ke view sudah benar
+        $data = [
+            'income' => $incomeData,
+            'expenses' => $expenses,
+            'month' => $month, // Tambahkan bulan ke data
+            'year' => $year,   // Tambahkan tahun ke data
+        ];
+
+        // Menggunakan view untuk membuat PDF
+        $pdf = PDF::loadView('reports.financial', $data);
+        return $pdf->download('laporan_keuangan_' . $month . '_' . $year . '.pdf');
+    }
 
 }

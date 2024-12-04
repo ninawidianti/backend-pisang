@@ -142,4 +142,37 @@ class OrderController extends Controller
     ]); // Mengembalikan response sukses
 }
 
+public function getOrders(Request $request)
+{
+    // Validasi input
+    $validator = Validator::make($request->all(), [
+        'user_id' => 'required|exists:users,id', // Validasi user_id
+        'status' => 'nullable|in:pending,process,completed,canceled', // Validasi status (opsional)
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    $userId = $request->input('user_id'); // Ambil user_id dari POST
+    $status = $request->input('status');  // Ambil status jika ada
+
+    // Query orders berdasarkan user_id dan status jika ada
+    $query = Order::where('user_id', $userId);
+
+    if ($status) {
+        $query->where('status', $status);
+    }
+
+    $orders = $query->get();
+
+    if ($orders->isEmpty()) {
+        return response()->json(['message' => 'No orders found for this user'], 404);
+    }
+
+    return response()->json($orders, 200);
+}
+
+
+
 }

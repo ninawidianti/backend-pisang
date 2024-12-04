@@ -46,23 +46,25 @@ class AuthController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-
+    
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $token = $user->createToken('auth_token')->plainTextToken;
-
+    
             return response()->json([
                 'access_token' => $token,
                 'user' => [
+                    'id' => $user->id,            // Tambahkan ID user
                     'name' => $user->name,
                     'email' => $user->email,
-                    'role' => $user->role, // Mengembalikan role
+                    'role' => $user->role,        // Mengembalikan role
                 ]
             ]);
         } else {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
     }
+    
     // Fungsi Logout
     public function logout(Request $request)
     {

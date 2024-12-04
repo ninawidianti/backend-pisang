@@ -28,21 +28,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Route untuk produk
     Route::get('/products', [ProductController::class, 'index'])->name('index');
-    ;
     Route::get('/products/{id}', [ProductController::class, 'show'])->name('show');
-    ;
     Route::post('/products/create', [ProductController::class, 'store'])->name('store');
-    ;
     Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('destroy');
-    ;
     Route::put('/products/{id}', [ProductController::class, 'update'])->name('update');
-    ;
 
     // Route untuk order
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('order-items', OrderItemController::class);
-
     Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::post('/orders/user_id', [OrderController::class, 'getOrders']);
+
 
     // Route untuk logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
