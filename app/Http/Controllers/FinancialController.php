@@ -104,106 +104,106 @@ class FinancialController extends Controller
 
     //fungsi untuk addincome dan expense
     public function addIncome(Request $request)
-{
-    $validated = $request->validate([
-        'total_price' => 'required|numeric',
-        'user_id' => 'required|exists:users,id',
-        'payment_method' => 'required|string',
-        'delivery_method' => 'required|string',
-        'status' => 'required|in:pending,process,completed,canceled',
-        'address' => 'nullable|string',
-    ]);
+    {
+        $validated = $request->validate([
+            'total_price' => 'required|numeric',
+            'user_id' => 'required|exists:users,id',
+            'payment_method' => 'required|string',
+            'delivery_method' => 'required|string',
+            'status' => 'required|in:pending,process,completed,canceled',
+            'address' => 'nullable|string',
+        ]);
 
-    $order = Order::create($validated);
+        $order = Order::create($validated);
 
-    return response()->json(['message' => 'Pemasukan berhasil ditambahkan!', 'data' => $order], 201);
-}
+        return response()->json(['message' => 'Pemasukan berhasil ditambahkan!', 'data' => $order], 201);
+    }
 
 
     public function addExpense(Request $request)
-{
-    $validated = $request->validate([
-        'name' => 'required|string',
-        'stock_quantity' => 'required|numeric',
-        'unit' => 'required|string',
-        'purchase_price' => 'required|numeric',
-        'supplier' => 'required|string',
-    ]);
+    {
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'stock_quantity' => 'required|numeric',
+            'unit' => 'required|string',
+            'purchase_price' => 'required|numeric',
+            'supplier' => 'required|string',
+        ]);
 
-    $stokbahan = Stokbahan::create($validated);
+        $stokbahan = Stokbahan::create($validated);
 
-    return response()->json(['message' => 'Pengeluaran berhasil ditambahkan!', 'data' => $stokbahan], 201);
-}
-
-public function updateIncome(Request $request, $id)
-{
-    $validated = $request->validate([
-        'total_price' => 'required|numeric',
-        'user_id' => 'required|exists:users,id',
-        'payment_method' => 'required|string',
-        'delivery_method' => 'required|string',
-        'status' => 'required|in:pending,process,completed,canceled',
-        'address' => 'nullable|string',
-    ]);
-
-    $order = Order::find($id);
-    if (!$order) {
-        return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
+        return response()->json(['message' => 'Pengeluaran berhasil ditambahkan!', 'data' => $stokbahan], 201);
     }
 
-    $order->update($validated);
+    public function updateIncome(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'total_price' => 'required|numeric',
+            'user_id' => 'required|exists:users,id',
+            'payment_method' => 'required|string',
+            'delivery_method' => 'required|string',
+            'status' => 'required|in:pending,process,completed,canceled',
+            'address' => 'nullable|string',
+        ]);
 
-    return response()->json(['message' => 'Pemasukan berhasil diperbarui!', 'data' => $order]);
-}
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
+        }
 
-public function updateExpense(Request $request, $id)
-{
-    $validated = $request->validate([
-        'name' => 'required|string',
-        'stock_quantity' => 'required|numeric',
-        'unit' => 'required|string',
-        'purchase_price' => 'required|numeric',
-        'supplier' => 'required|string',
-    ]);
+        $order->update($validated);
 
-    $stokbahan = Stokbahan::find($id);
-    if (!$stokbahan) {
-        return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
+        return response()->json(['message' => 'Pemasukan berhasil diperbarui!', 'data' => $order]);
     }
 
-    $stokbahan->update($validated);
+    public function updateExpense(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'stock_quantity' => 'required|numeric',
+            'unit' => 'required|string',
+            'purchase_price' => 'required|numeric',
+            'supplier' => 'required|string',
+        ]);
 
-    return response()->json(['message' => 'Pengeluaran berhasil diperbarui!', 'data' => $stokbahan]);
-}
+        $stokbahan = Stokbahan::find($id);
+        if (!$stokbahan) {
+            return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
+        }
+
+        $stokbahan->update($validated);
+
+        return response()->json(['message' => 'Pengeluaran berhasil diperbarui!', 'data' => $stokbahan]);
+    }
 
     //fungsi untuk delete
 
     public function deleteIncome($id)
-{
-    $order = Order::find($id);
-    if (!$order) {
-        return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json(['message' => 'Pemasukan tidak ditemukan'], 404);
+        }
+
+        $order->delete();
+
+        return response()->json(['message' => 'Pemasukan berhasil dihapus!']);
     }
 
-    $order->delete();
 
-    return response()->json(['message' => 'Pemasukan berhasil dihapus!']);
-}
+    public function deleteExpense($id)
+    {
+        $stokbahan = Stokbahan::find($id);
+        if (!$stokbahan) {
+            return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
+        }
 
+        $stokbahan->delete();
 
-public function deleteExpense($id)
-{
-    $stokbahan = Stokbahan::find($id);
-    if (!$stokbahan) {
-        return response()->json(['message' => 'Pengeluaran tidak ditemukan'], 404);
+        return response()->json(['message' => 'Pengeluaran berhasil dihapus!']);
     }
 
-    $stokbahan->delete();
-
-    return response()->json(['message' => 'Pengeluaran berhasil dihapus!']);
-}
-
-public function generatePDF(Request $request)
+    public function generatePDF(Request $request)
     {
         // Ambil bulan dan tahun dari query parameter, jika tidak ada, gunakan bulan dan tahun saat ini
         $month = $request->query('month', Carbon::now()->month);
@@ -246,7 +246,8 @@ public function generatePDF(Request $request)
             });
 
         // Gabungkan data pemasukan dan pengeluaran
-        $expenses = $stokbahans->merge($otherExpenses)->sortByDesc('date')->values();
+        // Pastikan untuk mengonversi hasil map menjadi koleksi
+        $expenses = collect($stokbahans)->merge(collect($otherExpenses))->sortByDesc('date')->values();
 
         // Pastikan data yang dikirim ke view sudah benar
         $data = [

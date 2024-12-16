@@ -8,5 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class UnexpectedExpense extends Model
 {
     use HasFactory;
-    protected $fillable = ['description', 'amount', 'date'];
+    protected $fillable = [
+        'description',
+        'amount',
+        'date',
+    ];
 }

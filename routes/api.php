@@ -87,7 +87,7 @@ Route::post('/unexpected-expenses', [UnexpectedExpenseController::class, 'store'
 Route::put('/unexpected-expenses/{id}', [UnexpectedExpenseController::class, 'update']);
 Route::delete('/unexpected-expenses/{id}', [UnexpectedExpenseController::class, 'destroy']);
 
-
-
+//menghitung notifikasi
+Route::get('/notifications/count', [OrderController::class, 'countPendingOrders']);
 
 

@@ -173,6 +173,12 @@ public function getOrders(Request $request)
     return response()->json($orders, 200);
 }
 
+public function countPendingOrders()
+{
+    $count = Order::where('status', 'pending')->count();
+    return response()->json(['count' => $count]);
+}
+
 
 
 }
