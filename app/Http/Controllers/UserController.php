@@ -67,4 +67,17 @@ class UserController extends Controller
 
         return response()->json(['message' => 'User updated successfully']);
     }
+
+    public function homepage(Request $request)
+{
+    $user = $request->user();  // Ambil user yang sedang login
+
+    if (!$user) {
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
+
+    // Mengembalikan data nama pengguna yang sedang login
+    return response()->json(['name' => $user->name]);
+}
+
 }

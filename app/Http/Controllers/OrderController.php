@@ -180,5 +180,29 @@ public function countPendingOrders()
 }
 
 
+public function homepage(Request $request)
+{
+    // Mengambil user yang sedang login (pastikan user sudah terautentikasi)
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json(['message' => 'User not authenticated'], 401);
+    }
+
+    // Mengambil pesanan berdasarkan user_id yang sedang login, status 'pending', dan tanggal hari ini
+    $orders = Order::where('user_id', $user->id)
+                   ->where('status', 'pending') // Status pesanan harus pending
+                   ->whereDate('created_at', today()) // Mengambil pesanan yang dibuat hari ini
+                   ->select('id as order_id', 'total_price') // Mengambil order_id dan total_price
+                   ->get();
+
+    if ($orders->isEmpty()) {
+        return response()->json(['message' => 'No pending orders found for today'], 404);
+    }
+
+    // Mengembalikan data dalam format JSON
+    return response()->json($orders);
+}
+
 
 }

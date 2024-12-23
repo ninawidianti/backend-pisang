@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\FinancialController;
+use App\Http\Controllers\HomepageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\ProductController;
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     })->name('user.profile');
+
+    Route::get('/homepage', [UserController::class, 'homepage']);
+    Route::get('/homepage', [OrderController::class, 'homepage']);
 
     // Route untuk produk
     Route::get('/products', [ProductController::class, 'index'])->name('index');
@@ -90,5 +94,6 @@ Route::delete('/unexpected-expenses/{id}', [UnexpectedExpenseController::class, 
 
 //menghitung notifikasi
 Route::get('/notifications/count', [OrderController::class, 'countPendingOrders']);
+Route::get('/homepage/stats', [HomepageController::class, 'getStats']);
 
 
